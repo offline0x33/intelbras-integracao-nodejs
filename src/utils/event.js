@@ -4,17 +4,40 @@
 const EXTENDED_PACKET_LENGTHS = [62];
 
 const EVENT_CODES = {
-  '130': 'Alarme de Pânico',
-  '121': 'Alarme de Fogo',
-  '134': 'Alarme de Sabotagem (Tamper)',
+  // --- ALARMES DE EMERGÊNCIA (Base 1XX) ---
+  '121': 'Alarme de Fogo', // [5]
+  '130': 'Alarme de Pânico (Silencioso)', // Subcomando 0x00 do Pânico [5]
+  '131': 'Pânico Audível (Emergência Pessoal)', // Inferido do Subcomando 0x01 do Pânico [5]
+  '100': 'Emergência Médica', // Inferido do Subcomando 0x02 do Pânico [5]
+  '134': 'Alarme de Sabotagem (Tamper)', // [6], [7], [8]
   '137': 'Alarme de Zona de Detecção',
+
+  // --- FALHAS E RESTAUROS DE SISTEMA (Base 3XX) ---
+  '300': 'Falha de Energia AC (Perda de Rede)', // Corresponde ao Byte 1, bit do Status de Problemas [4]
+  '301': 'Restauro de Energia AC', // Original da lista
+  '302': 'Restauro de Bateria', // Original da lista
+  '303': 'Falha de Bateria (Bateria Baixa)', // Corresponde ao Byte 1, bit[9] do Status de Problemas [4]
+
+  // --- FALHAS DE COMUNICAÇÃO / PERIFÉRICOS ---
+  '204': 'Falha de Supervisão de Teclado (Exemplo 20X)', // [10]
+  '305': 'Falha de Supervisão de Sirene (Exemplo 30X)', // [10]
+  '351': 'Falha/Corte de Linha Telefônica', // Corresponde ao Byte 5, bit[11] do Status de Problemas [12]
+  '355': 'Falha ao Comunicar Evento', // Corresponde ao Byte 5, bit[13] do Status de Problemas [12]
   '337': 'Restauro de Zona de Detecção',
+
+  // --- ARME/DESARME E COMANDOS (Base 4XX) ---
   '401': 'Arme (Total)',
   '403': 'Desarme',
-  '301': 'Restauro de Energia AC',
-  '302': 'Restauro de Bateria',
+  '407': 'Arme Parcial (Modo Noturno)', // Para cobrir a opção "Modo noturno" do Comando 0x16 [14]
+  '422': 'Acionamento de PGM', // Código permitido para eventos [15]
+  '461': 'Evento de Alarme (Exemplo de Transmissão)', // Código de exemplo em transações 0xB0 [1]
+
+  // --- TESTES (Base 6XX e 8XX) ---
   '602': 'Teste Periódico',
-  '840': 'Teste Manual / Status Periódico'
+  '840': 'Teste Manual / Status Periódico',
+
+  // --- EVENTOS ESPECÍFICOS DE PROBLEMAS ---
+  '320': 'Falha de Sirene (Corte/Curto-circuito)', // Corresponde ao Status Byte 5, bits  e [9] [12], [16]
 };
 
 // Extrai o ID da central APENAS de pacotes conhecidos
