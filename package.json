@@ -1,0 +1,21 @@
+{
+  "name": "intelbras-integracao-nodejs",
+  "version": "1.0.0",
+  "description": "Projeto para integração com sistemas de segurança Intelbras via comandos TCP.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "intelbras",
+    "nodejs",
+    "express",
+    "tcp"
+  ],
+  "author": "Seu Nome",
+  "license": "MIT"
+}
