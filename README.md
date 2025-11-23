@@ -1,4 +1,4 @@
-# Intelbras Integração Node.js
+# Intelbras Integração Central de Alarme Node.js
 
 Este projeto é uma aplicação Node.js para integração com centrais de alarme Intelbras, permitindo armar, desarmar e consultar a versão do firmware via comandos TCP. Utiliza Express para rotas HTTP e um servidor TCP para eventos e monitoramento.
 
