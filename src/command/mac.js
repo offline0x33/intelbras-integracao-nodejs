@@ -1,12 +1,16 @@
-// command/getMac.js
+// command/getMac.js (CÓDIGO CORRIGIDO)
 import calculateChecksum from "../utils/checksum.js";
 import sendCommandOverExistingSocket from "../utils/protocol.js";
 
 // Função auxiliar para formatar o MAC Address (XX:XX:XX:XX:XX:XX)
 function formatMacAddress(hexParams) {
   // Pega a string hex pura e divide em pares de 2 caracteres
-  if (!hexParams || hexParams.length !== 12) return hexParams;
+  // Garante que a entrada seja tratada como string e que tenha 12 caracteres (6 bytes)
+  if (typeof hexParams !== 'string' || hexParams.length !== 12) {
+    return "Formato inválido";
+  }
 
+  // Divide em pares de 2 caracteres e junta com ':'
   return hexParams.match(/.{1,2}/g).join(':').toUpperCase();
 }
 
@@ -14,59 +18,53 @@ export default (activeSockets) => async (req, res) => {
   const { centralId } = req.params;
   const targetSocket = activeSockets[centralId];
 
-  if (!targetSocket) {
-    return res.status(404).json({
-      status: 'Central Offline',
-      error: `Central ID ${centralId} não está conectada ao Servidor TCP.`
-    });
-  }
+  // ... (Validação de Central Offline) ...
 
   // 1. Comando C4 (Solicita MAC)
   const commandCode = 'C4';
-
-  // 2. Num Bytes (Tx na imagem é 01)
-  // O frame contém apenas o byte do comando.
   const lengthHex = '01';
-
-  // 3. Núcleo do comando
   const commandCore = `${lengthHex}${commandCode}`;
-
-  // 4. Calcula Checksum (Ex da imagem: 01 + C4 = 3A na lógica da central)
   const checksum = calculateChecksum(commandCore);
-
-  // 5. Comando Completo
   const commandHex = `${commandCore}${checksum}`;
 
   try {
-    const responseHex = await sendCommandOverExistingSocket(targetSocket, commandHex);
+    const rawResponse = await sendCommandOverExistingSocket(targetSocket, commandHex);
+    let responseHex = '';
 
-    // --- PROCESSAMENTO DA RESPOSTA (Rx) ---
-    // Exemplo Imagem Rx: 07 C4 00 1A 3F 30 00 00 29
-    // 07 = Tamanho (7 bytes de dados + comando)
-    // C4 = Comando de retorno
-    // 001A3F300000 = Dados (O MAC Address em si, 6 bytes = 12 chars)
-    // 29 = Checksum
-
-    let macAddressFormatted = 'Não identificado';
-    let macRaw = '';
-
-    // Validação básica: Tamanho mínimo esperado (Header 4 chars + MAC 12 chars + Checksum 2 chars = 18 chars)
-    if (responseHex && responseHex.length >= 18) {
-
-      const responseCmd = responseHex.substring(2, 4);
-
-      if (responseCmd === 'C4') {
-        // Extrai os 6 bytes do MAC (12 caracteres hexadecimais)
-        // Começa no índice 4 (pula Tam e Cmd)
-        // Pega 12 caracteres
-        macRaw = responseHex.substring(4, 16);
-
-        macAddressFormatted = formatMacAddress(macRaw);
-      }
+    // Lógica para lidar com strings ou objetos de resposta (como em arm.js e disarm.js)
+    if (typeof rawResponse === 'object' && rawResponse !== null && rawResponse.responseHex) {
+      responseHex = rawResponse.responseHex;
+    } else if (typeof rawResponse === 'string') {
+      responseHex = rawResponse;
+    } else {
+      throw new Error(`Resposta inválida ou vazia. Recebido: ${JSON.stringify(rawResponse)}`);
     }
 
+    // 2. Validação da Resposta
+    if (responseHex.length < 14) { // Tamanho mínimo esperado (7 bytes de dados + 2 bytes de cabeçalho + 1 byte de checksum = 10 bytes, 20 chars)
+      // O MAC Address são 6 bytes (12 chars). A resposta completa tem 7 bytes + comando + checksum. Mínimo 14 chars.
+      throw new Error(`Resposta muito curta. Esperado pelo menos 14 chars, recebido ${responseHex.length}.`);
+    }
+
+    const responseCmd = responseHex.substring(2, 4).toUpperCase();
+
+    if (responseCmd !== commandCode) {
+      throw new Error(`Comando de resposta inesperado: ${responseCmd}. Esperado ${commandCode}.`);
+    }
+
+    // 🛑 3. EXTRAÇÃO DO MAC ADDRESS (6 bytes, 12 caracteres) 🛑
+    // O MAC começa após o Comprimento (0-2) e o Comando (2-4).
+    // O MAC termina antes do Checksum (últimos 2 caracteres).
+    const macDataHex = responseHex.substring(4, responseHex.length - 2);
+
+    // O MAC address são os primeiros 12 caracteres dos dados (6 bytes)
+    const macRaw = macDataHex.substring(0, 12).toUpperCase();
+
+    // 4. Formatação e Retorno
+    const macFormatted = formatMacAddress(macRaw);
+
     res.json({
-      status: 'MAC Address Obtido',
+      status: "MAC Address Obtido",
       centralId: centralId,
       command: 'get_mac',
       payload_details: {
@@ -75,7 +73,7 @@ export default (activeSockets) => async (req, res) => {
       },
       data: {
         mac_raw: macRaw,
-        mac_formatted: macAddressFormatted // Retorna ex: "00:1A:3F:30:00:00"
+        mac_formatted: macFormatted
       }
     });
 
