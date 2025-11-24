@@ -1,7 +1,7 @@
 import express from "express";
 
 // --- Comandos de Ação/Controle ---
-import ArmHandler from "./command/arm.js";
+import ArmHandler from "./resources/arm.js";
 import DisarmHandler from "./command/disarm.js";
 import FirmwareHandler from "./command/firmware.js";
 
