@@ -24,7 +24,7 @@ const PARTITION_MAP = {
 // 0B E9 21 38 37 38 37 38 37 41 42 21 XX - Comando para ativar a partição B com senha de 6 dígitos.
 // No Bytes: 0B - Tamanho do pacote (11 bytes)
 // Comando: E9 - Comando de Ativação ISECNet
-// Payload ISECNet: 21 38 37 38 37 38 37 41 42 21
+// Payload ISECNet: 21 38 37 38 37 38 37 41 42  - Corpo ISECNet (senha 6 digitos + comando de ativação)
 // Checksum: XX - Checksum calculado
 
 const MODE_MAP = {
