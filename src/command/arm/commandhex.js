@@ -32,6 +32,38 @@ const MODE_MAP = {
   'stay': '50'  // Comando ISEC Mobile para Ativação Stay
 };
 
+const DEACTIVATION_COMMAND = '44'; // Comando ISEC Mobile para DESATIVAÇÃO
+
+/**
+ * Monta o payload ISECNet final para desativação (E9).
+ * @param {string} partition O número da partição (0-4).
+ * @param {string} passwordHex A senha do usuário em formato hexadecimal (ASCII).
+ * @returns {{finalHex: string, isecCommandBody: string}} O comando HEX final e o corpo ISEC para log.
+ */
+export function buildDisarmCommand(partition, passwordHex) {
+  const partitionByte = PARTITION_MAP[parseInt(partition)] || '';
+
+  // Corpo ISEC: Comando 44 + [Byte da Partição]
+  let isecCommandBody = DEACTIVATION_COMMAND;
+  if (partitionByte) {
+    isecCommandBody += partitionByte;
+  }
+
+  // Frame ISECNet: 21 + Senha + Corpo + 21
+  const isecFrame = `21${passwordHex}${isecCommandBody}21`;
+
+  const commandCode = 'E9'; // Desarmar também usa o comando E9
+  const frameBytesCount = isecFrame.length / 2;
+  const totalBytes = 1 + frameBytesCount;
+  const lengthHex = totalBytes.toString(16).padStart(2, '0').toUpperCase();
+
+  const commandCore = `${lengthHex}${commandCode}${isecFrame}`;
+  const checksum = calculateChecksum(commandCore);
+  const finalHex = `${commandCore}${checksum}`;
+
+  return { finalHex, isecCommandBody };
+}
+
 /**
  * Monta o payload ISECNet final para ativação.
  * @param {string} partition O número da partição (0-4).
@@ -67,7 +99,7 @@ export function buildArmCommand(partition, mode, passwordHex) {
  * @param {string} responseHex A string HEX bruta recebida da central.
  * @returns {{status: string, success: boolean}} O status decodificado e o resultado.
  */
-export function processArmResponse(responseHex) {
+export function processArmResponse(responseHex, isDisarm = false) {
   // A validação de comunicação responseHex.length < 8 já é feita no arm.js
 
   const lengthDecimal = parseInt(responseHex.substring(0, 2), 16);
@@ -78,9 +110,13 @@ export function processArmResponse(responseHex) {
 
   if (responseCmd === 'E9') {
 
+    const successMessage = isDisarm
+      ? 'Comando Aceito (Sistema Desativado) - Status Completo Recebido'
+      : 'Comando Aceito (Sistema Ativado) - Status Completo Recebido';
+    
     // CHECK SUCESSO LONGO: Pacote de Status Completo (0xCF ou maior)
     if (lengthDecimal >= 200) {
-      status = 'Comando Aceito (Sistema Ativado) - Status Completo Recebido';
+      status = successMessage;
       success = true;
 
     } else {
