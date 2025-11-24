@@ -4,40 +4,60 @@
 const EXTENDED_PACKET_LENGTHS = [62];
 
 const EVENT_CODES = {
-  // --- ALARMES DE EMERGÊNCIA (Base 1XX) ---
-  '121': 'Alarme de Fogo', // [5]
-  '130': 'Alarme de Pânico (Silencioso)', // Subcomando 0x00 do Pânico [5]
-  '131': 'Pânico Audível (Emergência Pessoal)', // Inferido do Subcomando 0x01 do Pânico [5]
-  '100': 'Emergência Médica', // Inferido do Subcomando 0x02 do Pânico [5]
-  '134': 'Alarme de Sabotagem (Tamper)', // [6], [7], [8]
-  '137': 'Alarme de Zona de Detecção',
-
-  // --- FALHAS E RESTAUROS DE SISTEMA (Base 3XX) ---
-  '300': 'Falha de Energia AC (Perda de Rede)', // Corresponde ao Byte 1, bit do Status de Problemas [4]
-  '301': 'Restauro de Energia AC', // Original da lista
-  '302': 'Restauro de Bateria', // Original da lista
-  '303': 'Falha de Bateria (Bateria Baixa)', // Corresponde ao Byte 1, bit[9] do Status de Problemas [4]
-
-  // --- FALHAS DE COMUNICAÇÃO / PERIFÉRICOS ---
-  '204': 'Falha de Supervisão de Teclado (Exemplo 20X)', // [10]
-  '305': 'Falha de Supervisão de Sirene (Exemplo 30X)', // [10]
-  '351': 'Falha/Corte de Linha Telefônica', // Corresponde ao Byte 5, bit[11] do Status de Problemas [12]
-  '355': 'Falha ao Comunicar Evento', // Corresponde ao Byte 5, bit[13] do Status de Problemas [12]
-  '337': 'Restauro de Zona de Detecção',
-
-  // --- ARME/DESARME E COMANDOS (Base 4XX) ---
+  // --- ARMES E DESARMES (4XX) ---
+  // A tabela não lista explicitamente Arme/Desarme, mas seguem o padrão Contact ID:
+  // 401: Arme (Total), 403: Desarme. Vamos manter os que não conflitam.
   '401': 'Arme (Total)',
   '403': 'Desarme',
-  '407': 'Arme Parcial (Modo Noturno)', // Para cobrir a opção "Modo noturno" do Comando 0x16 [14]
-  '422': 'Acionamento de PGM', // Código permitido para eventos [15]
-  '461': 'Evento de Alarme (Exemplo de Transmissão)', // Código de exemplo em transações 0xB0 [1]
+  '422': 'Acionamento de PGM', // Índice 171
 
-  // --- TESTES (Base 6XX e 8XX) ---
-  '602': 'Teste Periódico',
-  '840': 'Teste Manual / Status Periódico',
+  // --- ALARMES DE EMERGÊNCIA (1XX) ---
+  '130': 'Disparo de Zona', // Índice 130
+  '131': 'Disparo de Zona 24h', // Índice 131
+  '132': 'Disparo de cerca elétrica', // Índice 132
+  '134': 'Curto-circuito na Fiação dos Sensores', // Índice 135
+  '135': 'Tamper do Sensor', // Índice 136
+  '136': 'Problema no dispositivo do barramento', // Índice 137
+  '137': 'Tamper/módulo de expansão', // Índice 138
+  '138': 'Anulação temporária da zona', // Índice 139
+  '139': 'Anulação por disparo', // Índice 140
+  '140': 'Falha na rede elétrica', // Índice 141
+  '141': 'Bateria principal baixa ou em curto-circuito', // Índice 142
+  '142': 'Bateria principal ausente ou invertida', // Índice 143
+  '300': 'Sobrecarga na saída auxiliar', // Índice 144
+  '302': 'Corte ou curto-circuito na sirene', // Índice 145
+  '304': 'Falha na linha telefônica', // Índice 146
+  '306': 'Bateria baixa de sensor sem fio', // Índice 147
+  '407': 'Desativação remota', // Índice 148
+  '409': 'Auto desativação', // Índice 149
+  // 100 não está na lista, mas 110/120 sim
+  '110': 'Disparo ou pânico de incêndio', // Índice 152
+  '111': 'Pânico de coação', // Índice 153
+  '120': 'Pânico audível ou silencioso', // Índice 155
+  '122': 'Pânico Silencioso', // Índice 154
 
-  // --- EVENTOS ESPECÍFICOS DE PROBLEMAS ---
-  '320': 'Falha de Sirene (Corte/Curto-circuito)', // Corresponde ao Status Byte 5, bits  e [9] [12], [16]
+  // --- FALHAS, TESTES E MUDANÇAS (3XX, 6XX, 8XX) ---
+  '305': 'Reset pelo modo de programação', // Índice 156
+  '306': 'Alteração da programação do painel', // Índice 157
+  '334': 'Falha ao comunicar eventos', // Índice 158
+  '461': 'Senha incorreta', // Índice 159
+  '410': 'Acesso remoto pelo software de download/ upload', // Índice 160
+  '602': 'Teste periódico', // Índice 162
+  '603': 'Teste manual', // Índice 161
+  '616': 'Solicitação de manutenção', // Índice 164
+  '621': 'Reset de buffer de eventos', // Índice 165
+  '625': 'Data e hora foram reiniciadas', // Índice 166
+
+  // --- SMART E GPRS/ETH (3XX, 4XX) ---
+  '336': 'Falha da supervisão Smart', // Índice 170
+  '360': 'Falha no Keep Alive do GPRS', // Índice 174
+  '361': 'Falha no Keep Alive da Eth', // Índice 175
+  '362': 'Falha rede elétrica módulo expansão', // Índice 176
+  '532': 'Inclusão de dispositivo RF', // Índice 177
+  '534': 'Inclusão/cadastro de senha', // Índice 178
+  '416': 'Atualização do FW com sucesso', // Índice 179
+  '417': 'Falha na atualização do FW', // Índice 180
+  '535': 'Zona habilitada', // Índice 181
 };
 
 // Extrai o ID da central APENAS de pacotes conhecidos
