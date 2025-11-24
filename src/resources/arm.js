@@ -1,7 +1,7 @@
 // command/arm.js 
 import { asciiToHex } from "../utils/checksum.js";
 import sendCommandOverExistingSocket from "../utils/protocol.js";
-import { buildArmCommand, processArmResponse } from "../command/arm/commandhex.js";
+import { buildArmCommand, processArmResponse } from "../command/armdisarm/commandhex.js";
 
 export default (activeSockets) => async (req, res) => {
   const { centralId, user: password, partition, mode } = req.params;

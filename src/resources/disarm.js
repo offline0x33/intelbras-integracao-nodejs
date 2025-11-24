@@ -1,7 +1,7 @@
 // command/disarm.js
 import { asciiToHex } from "../utils/checksum.js";
 import sendCommandOverExistingSocket from "../utils/protocol.js";
-import { buildDisarmCommand, processArmResponse } from "../command/arm/commandhex.js";
+import { buildDisarmCommand, processArmResponse } from "../command/armdisarm/commandhex.js";
 
 export default (activeSockets) => async (req, res) => {
   // Lê os parâmetros da rota GET
