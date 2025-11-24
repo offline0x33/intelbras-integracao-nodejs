@@ -11,7 +11,7 @@ import GetMacHandler from "./command/mac.js";               // C4
 import GetIMEIHandler from "./command/imei.js";             // C5
 import GetICCIDHandler from "./command/iccid.js";           // C6
 import GetSignalHandler from "./command/signalstrength.js"; // D1
-import CheckGPRSHandler from "./command/checkgprsmodule.js";   // D3
+import CheckGPRSHandler from "./resources/checkgprsmodule.js";   // D3
 
 /**
  * Configura todos os endpoints de comando TCP no aplicativo Express.
