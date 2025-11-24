@@ -8,15 +8,24 @@ const NACK_MAP = {
   'E2': 'Comando inválido (Usuário sem permissão)',
   'E3': 'Central não particionada',
   'E4': 'Zonas abertas (Verifique portas e janelas!)',
+  'E5': 'Comando descontinuado',
+  'E6': 'Usuário sem permissão para bypass',
+  'E7': 'Usuário sem permissão para desativar',
+  'E8': 'Bypass não permitido com a central ativada',
 };
 
 const PARTITION_MAP = {
-  0: '',
+  0: '',   // NULL – Ativa a central completa
   1: '41', // Partição A
   2: '42', // Partição B
   3: '43', // Partição C
   4: '44', // Partição D
 };
+// 0B E9 21 38 37 38 37 38 37 41 42 21 XX - Comando para ativar a partição B com senha de 6 dígitos.
+// No Bytes: 0B - Tamanho do pacote (11 bytes)
+// Comando: E9 - Comando de Ativação ISECNet
+// Payload ISECNet: 21 38 37 38 37 38 37 41 42 21
+// Checksum: XX - Checksum calculado
 
 const MODE_MAP = {
   'full': '41', // Comando ISEC Mobile para Ativação Completa
