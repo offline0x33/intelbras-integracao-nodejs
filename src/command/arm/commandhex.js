@@ -40,24 +40,24 @@ const MODE_MAP = {
  * @returns {{finalHex: string, isecCommandBody: string}} O comando HEX final e o corpo ISEC para log.
  */
 export function buildArmCommand(partition, mode, passwordHex) {
-  const modeCommand = MODE_MAP[mode] || MODE_MAP['full'];
-  const partitionByte = PARTITION_MAP[parseInt(partition)] || '';
+  const modeCommand = MODE_MAP[mode] || MODE_MAP['full']; // Default para 'full' se modo inválido
+  const partitionByte = PARTITION_MAP[parseInt(partition)] || ''; // Mapeia a partição ou vazio para 0 (completa)
 
-  let isecCommandBody = modeCommand;
+  let isecCommandBody = modeCommand; // Começa com o comando de modo
   if (partitionByte) {
-    isecCommandBody += partitionByte;
+    isecCommandBody += partitionByte; // Adiciona o byte da partição se aplicável
   }
 
-  const isecFrame = `21${passwordHex}${isecCommandBody}21`;
+  const isecFrame = `21${passwordHex}${isecCommandBody}21`; // Payload ISECNet: 21 38 37 38 37 38 37 41 42 21
 
-  const commandCode = 'E9';
-  const frameBytesCount = isecFrame.length / 2;
-  const totalBytes = 1 + frameBytesCount;
-  const lengthHex = totalBytes.toString(16).padStart(2, '0').toUpperCase();
+  const commandCode = 'E9'; // Comando de Ativação ISECNet
+  const frameBytesCount = isecFrame.length / 2; // Cada 2 chars HEX = 1 byte
+  const totalBytes = 1 + frameBytesCount; // 1 byte para o comando + payload ISECNet
+  const lengthHex = totalBytes.toString(16).padStart(2, '0').toUpperCase(); // Tamanho do pacote em HEX
 
-  const commandCore = `${lengthHex}${commandCode}${isecFrame}`;
-  const checksum = calculateChecksum(commandCore);
-  const finalHex = `${commandCore}${checksum}`;
+  const commandCore = `${lengthHex}${commandCode}${isecFrame}`; // Comando sem checksum
+  const checksum = calculateChecksum(commandCore); // Calcula o checksum
+  const finalHex = `${commandCore}${checksum}`; // Comando final com checksum
 
   return { finalHex, isecCommandBody };
 }
