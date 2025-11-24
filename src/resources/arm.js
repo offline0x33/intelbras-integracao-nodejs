@@ -42,7 +42,8 @@ export default (activeSockets) => async (req, res) => {
       throw new Error(`Falha de comunicação ou resposta vazia. Recebido: ${receivedValue}`);
     }
 
-    const { status, success } = processArmResponse(responseHex);
+    // 5. Chama o processador
+    const { status, success } = processArmResponse(responseHex, false);
 
     res.json({
       status: status,
